@@ -61,7 +61,7 @@ def generate_infographic(repository):
 
 	# Good values for the relative position
 	left = width/18 + 10  # The '+ 10' is to prevent text from overlapping 
-	top = pc_height/20 + 400 + num_of_years*150
+	top = pc_height/20 + 400
 	indicator_length = pc_height/20
 
 	days = ['Sat', 'Fri', 'Thu', 'Wed', 'Tue', 'Mon', 'Sun']
@@ -101,33 +101,7 @@ def generate_infographic(repository):
 		cr.fill();
 		i = i+1
 	
-	cr.set_font_size(25)
-	cr.move_to(25,300)
-	cr.show_text("Commits by day: ")
-	
-	cr.set_font_size(15)
-
 	commits = get_commits_by_date().splitlines()
-	
-	years = [0] * num_of_years
-	for i in range (0, num_of_years) :
-		years[i] = [0] * 366
-	
-	for commit in commits :
-		date = parse(commit)
-		years[int(datetime.date.today().year - date.year)][date.timetuple().tm_yday] += 1
-	for i in range(0, len(years)) :
-		x = 80
-		for k in range(1,13) :
-			cr.rectangle(x, 400 + 150*i , 2, 10)
-			cr.stroke_preserve()
-			x += 2*calendar.monthrange((datetime.date.today().year - i),k)[1]
-
-		for j in range(0, len(years[i])) :
-			cr.move_to(25,400 + 150*i)
-			cr.show_text(str(datetime.date.today().year - i))
-			cr.rectangle(j*2 + 80, 400 + 150*i - years[i][j]*5 , 2, years[i][j]*5)
-			cr.stroke_preserve()		
 	
 	cr.set_font_size(25)
 	cr.move_to(25,top - 50)
@@ -202,6 +176,35 @@ def generate_infographic(repository):
 		cr.arc(x, y, length, 0, 2 * math.pi)
 		cr.fill()
 	
+	
+	cr.set_source_rgba (0, 0, 0)
+	cr.set_font_size(25)
+	cr.move_to(25,top + 400)
+	cr.show_text("Commits by day: ")
+	
+	cr.set_font_size(15)
+
+	
+	years = [0] * num_of_years
+	for i in range (0, num_of_years) :
+		years[i] = [0] * 366
+	
+	for commit in commits :
+		date = parse(commit)
+		years[int(datetime.date.today().year - date.year)][date.timetuple().tm_yday] += 1
+	for i in range(0, len(years)) :
+		x = 80
+		for k in range(1,13) :
+			cr.rectangle(x, top + 500 + 150*i , 2, 10)
+			cr.stroke_preserve()
+			x += 2*calendar.monthrange((datetime.date.today().year - i),k)[1]
+
+		for j in range(0, len(years[i])) :
+			cr.move_to(25,top + 500 + 150*i)
+			cr.show_text(str(datetime.date.today().year - i))
+			cr.rectangle(j*2 + 80, top + 500 + 150*i - years[i][j]*5 , 2, years[i][j]*5)
+			cr.stroke_preserve()		
+
 	surface.write_to_png('output.png')
 		
 
