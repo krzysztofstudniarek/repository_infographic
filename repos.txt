@@ -1,1 +1,1 @@
-https://github.com/aspnet/EntityFramework.git
+https://github.com/TestStack/White.git
