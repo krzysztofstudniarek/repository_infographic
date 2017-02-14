@@ -8,8 +8,9 @@ def generate_infographic(repository):
 	shortlog_command = ['git', '--no-pager', 'shortlog','--no-merges', '-s', '-n']
 	log_command = ['git', '--no-pager' ,'log', '--no-merges', '--pretty=format:%aD']
 	oldest_command = ['git', 'log', '--max-parents=0', 'HEAD', '--pretty=format:%aD']
+	files_command = ['git' ,'ls-files']
 
-	popular_languages = [['.cs', 'c#'], ['.py', 'python'], ['.cpp', 'c++'], ['.js', 'javascript'], ['.html', 'html']]
+	popular_languages = [['cs', 'c#', 0], ['py', 'python', 0], ['cpp', 'c++', 0], ['js', 'javascript',0], ['html', 'html', 0], ['rb', 'ruby', 0]]
 
 	max_years_in_commit_graph = 5
 
@@ -18,7 +19,8 @@ def generate_infographic(repository):
 	pc_height = int(round(width/2.75, 0))
 
 	top_commiters = 50
-	top_punchcard = pc_height/20 + 400
+	top_language = 350
+	top_punchcard = pc_height/20 + 450
 	top_commits_per_day = top_punchcard + 400
 	
 	commits = run_git_command(log_command).splitlines()
@@ -79,6 +81,26 @@ def generate_infographic(repository):
 		cr.stroke_preserve();
 		cr.fill();
 		i = i+1
+
+	files = run_git_command(files_command).splitlines()
+	
+	for file in files :
+		split = file.split('.')
+		for language in popular_languages :
+			if split[len(split)-1] == language[0] :
+				language[2] += 1
+	
+	best_lang = ''
+	num_of_files = 0
+	
+	for language in popular_languages :
+		if language[2] > num_of_files :
+			best_lang = language[1]
+			num_of_files = language[2]
+
+	cr.set_font_size(25)
+	cr.move_to(25,top_language)
+	cr.show_text("Repo Language: "+best_lang)
 	
 	cr.set_font_size(25)
 	cr.move_to(25,top_punchcard - 50)
@@ -187,17 +209,9 @@ def generate_infographic(repository):
 	surface.write_to_png('output.png')
 	
 def run_git_command(command):
-	print 'GETTING COMMITS BY DATE'
 	p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	out = p.communicate()[0]
 	return out
-	
-def max_ln(buckets):
-	minValue = len(buckets[0])
-	for i in range(1, len(buckets)):
-		if len(buckets[i]) < minValue:
-			minValue = len(buckets[i])
-	return minValue
 	
 def get_length(nr, distance, max_range):
     if nr == 0:
