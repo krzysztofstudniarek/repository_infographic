@@ -97,10 +97,12 @@ def generate_infographic(repository):
 	
 	i = 0
 	
+	max_commit_no = int(leaders[0].lstrip().split('\t')[0])
+	
 	for leader in leaders[0:10] :
 		cr.move_to(25, 75 + i*20)
 		cr.show_text(leader.lstrip().split('\t')[1])
-		strip_length = int(leader.lstrip().split('\t')[0])
+		strip_length = int(leader.lstrip().split('\t')[0])*(width-300)/max_commit_no
 		cr.rectangle(250, 70 + i*20, strip_length, 5);
 		cr.stroke_preserve();
 		cr.fill();
