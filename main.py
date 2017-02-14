@@ -6,6 +6,8 @@ shortlog_command = ['git', '--no-pager', 'shortlog','--no-merges', '-s', '-n']
 log_command = ['git', '--no-pager' ,'log', '--no-merges', '--pretty=format:%aD']
 oldest_command = ['git', 'log', '--max-parents=0', 'HEAD', '--pretty=format:%aD']
 
+max_years_in_commit_graph = 5
+
 def get_leaders():
 	print 'GETTING LEADER'
 	p = subprocess.Popen(shortlog_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -46,6 +48,9 @@ def generate_infographic(repository):
 	oldest_commit_date = int(get_oldest_commit()[12:16])
 	num_of_years = int(datetime.date.today().year - oldest_commit_date) + 1
 	
+	if num_of_years > max_years_in_commit_graph :
+		num_of_years = max_years_in_commit_graph
+	
 	width = 1000
 
 	pc_height = int(round(width/2.75, 0))
@@ -68,7 +73,7 @@ def generate_infographic(repository):
 	hours = ['12am'] + [str(x) for x in xrange(1, 12)] + ['12pm'] + [str(x) for x in xrange(1, 12)]	
 
 	height = 800 + num_of_years*150 + pc_height
-
+	
 	surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
 	cr = cairo.Context(surface)
 	
@@ -188,10 +193,12 @@ def generate_infographic(repository):
 	years = [0] * num_of_years
 	for i in range (0, num_of_years) :
 		years[i] = [0] * 366
-	
+		
 	for commit in commits :
 		date = parse(commit)
-		years[int(datetime.date.today().year - date.year)][date.timetuple().tm_yday] += 1
+		if datetime.date.today().year - date.year >= max_years_in_commit_graph:
+			break
+		years[int(datetime.date.today().year - date.year)][date.timetuple().tm_yday-1] += 1
 	for i in range(0, len(years)) :
 		x = 80
 		for k in range(1,13) :
@@ -202,7 +209,7 @@ def generate_infographic(repository):
 		for j in range(0, len(years[i])) :
 			cr.move_to(25,top + 500 + 150*i)
 			cr.show_text(str(datetime.date.today().year - i))
-			cr.rectangle(j*2 + 80, top + 500 + 150*i - years[i][j]*5 , 2, years[i][j]*5)
+			cr.rectangle(j*2 + 80, top + 500 + 150*i - years[i][j]*2 , 2, years[i][j]*2)
 			cr.stroke_preserve()		
 
 	surface.write_to_png('output.png')
