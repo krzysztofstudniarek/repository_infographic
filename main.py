@@ -1,7 +1,8 @@
 import os, math, shutil, subprocess, cairo, datetime, calendar
 
-from dateutil.parser import parse
+from mako.template import Template
 
+from dateutil.parser import parse
 		
 def generate_infographic(repository):
 	
@@ -9,6 +10,7 @@ def generate_infographic(repository):
 	log_command = ['git', '--no-pager' ,'log', '--no-merges', '--pretty=format:%aD']
 	oldest_command = ['git', 'log', '--max-parents=0', 'HEAD', '--pretty=format:%aD']
 	files_command = ['git' ,'ls-files']
+
 
 	popular_languages = [['cs', 'c#', 0], ['py', 'python', 0], ['cpp', 'c++', 0], ['js', 'javascript',0], ['html', 'html', 0], ['rb', 'ruby', 0]]
 
@@ -227,6 +229,7 @@ def main():
 		repositories = open('repos.txt')
 		print repositories
 		for repository in repositories :
+			mytemplate = Template(filename='template.html')
 			p = subprocess.Popen(['git', 'clone', repository], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			p.communicate()
 			catalogue = repository.split('/')[4].split('.')[0]
@@ -234,6 +237,9 @@ def main():
 			generate_infographic(repository)
 			shutil.copyfile('output.png', '../out/'+catalogue+'.png')
 			os.chdir('..')
+			site = open(catalogue+'.html', 'w')
+			site.write(mytemplate.render(name = catalogue))
+			site.close()
 			os.system('rm -rf '+catalogue)
 	else : 
 		print 'YOU SHOULD HAVE INSTALLED GIT BEFORE RUNNING THIS CODE'
