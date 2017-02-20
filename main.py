@@ -3,18 +3,16 @@ import os, math, shutil, subprocess, cairo, datetime, calendar
 from mako.template import Template
 
 from dateutil.parser import parse
-		
-def generate_infographic(repository):
-	
-	shortlog_command = ['git', '--no-pager', 'shortlog','--no-merges', '-s', '-n']
-	log_command = ['git', '--no-pager' ,'log', '--no-merges', '--pretty=format:%aD']
-	oldest_command = ['git', 'log', '--max-parents=0', 'HEAD', '--pretty=format:%aD']
-	files_command = ['git' ,'ls-files']
 
+shortlog_command = ['git', '--no-pager', 'shortlog','--no-merges', '-s', '-n']
+log_command = ['git', '--no-pager' ,'log', '--no-merges', '--pretty=format:%aD']
+oldest_command = ['git', 'log', '--max-parents=0', 'HEAD', '--pretty=format:%aD']
+files_command = ['git' ,'ls-files']
+
+def generate_infographic(repository):
 
 	popular_languages = [['cs', 'c#', 0], ['py', 'python', 0], ['cpp', 'c++', 0], ['js', 'javascript',0], ['html', 'html', 0], ['rb', 'ruby', 0]]
 
-	max_years_in_commit_graph = 5
 
 	width = 1000
 
@@ -195,20 +193,37 @@ def generate_infographic(repository):
 		if datetime.date.today().year - date.year >= max_years_in_commit_graph:
 			break
 		years[int(datetime.date.today().year - date.year)][date.timetuple().tm_yday-1] += 1
-	for i in range(0, len(years)) :
-		x = 80
-		for k in range(1,13) :
-			cr.rectangle(x, top_commits_per_day + 100 + 150*i , 2, 10)
-			cr.stroke_preserve()
-			x += 2*calendar.monthrange((datetime.date.today().year - i),k)[1]
+	
+	return years
+	
+def get_commits_per_day():
 
-		for j in range(0, len(years[i])) :
-			cr.move_to(25,top_commits_per_day + 100 + 150*i)
-			cr.show_text(str(datetime.date.today().year - i))
-			cr.rectangle(j*2 + 80, top_commits_per_day + 100 + 150*i - years[i][j]*2 , 2, years[i][j]*2)
-			cr.stroke_preserve()		
+	commits = run_git_command(log_command).splitlines()
+	oldest_commit_date = int(run_git_command(oldest_command)[12:16])
+	num_of_years = int(datetime.date.today().year - oldest_commit_date) + 1
+	
+	max_years_in_commit_graph = 5
+	
+	if num_of_years > max_years_in_commit_graph :
+		num_of_years = max_years_in_commit_graph
+		
+	num_of_days = num_of_years*365
 
-	surface.write_to_png('output.png')
+	data = [0]*num_of_days
+	
+	for commit in commits :
+		date = parse(commit)
+		if datetime.date.today().year - date.year >= max_years_in_commit_graph:
+			break
+		data[int(datetime.date.today().year - date.year)*365+date.timetuple().tm_yday-1] += 1
+	
+	labels = [""]*num_of_days
+	for i in range(0,len(data)):
+		if i%365 == 0 :
+			labels[i] = datetime.date.today().year - i/365
+			print labels[i]
+	
+	return labels, data
 	
 def run_git_command(command):
 	p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -234,11 +249,10 @@ def main():
 			p.communicate()
 			catalogue = repository.split('/')[4].split('.')[0]
 			os.chdir(catalogue)
-			generate_infographic(repository)
-			shutil.copyfile('output.png', '../out/'+catalogue+'.png')
+			labels, data = get_commits_per_day()
 			os.chdir('..')
 			site = open(catalogue+'.html', 'w')
-			site.write(mytemplate.render(name = catalogue))
+			site.write(mytemplate.render(name = catalogue, data = data, labels = labels))
 			site.close()
 			os.system('rm -rf '+catalogue)
 	else : 

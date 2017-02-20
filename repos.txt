@@ -1,1 +1,1 @@
-https://gitlab.com/kadu/kadu.git
+https://github.com/TestStack/White.git

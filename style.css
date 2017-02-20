@@ -1,23 +1,7 @@
 body{
 	font-family:Lucida Sans Unicode;
 }
-div {
-    height: 100%;
-    width: 100%;
-    background: yellow;
 
-    position: fixed;
-    top: 0%;
-    left: 0%;
+div{
+	display: inline-block;
 }
-
-.name {
-	font-size: 80;
-    position: absolute;
-    width: 500px;
-    height: 200px;
-    top: 50%;
-    left: 50%;
-    margin-left: -250px; /* margin is -0.5 * dimension */
-    margin-top: -100px; 
-}​
